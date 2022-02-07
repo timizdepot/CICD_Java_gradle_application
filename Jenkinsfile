@@ -32,10 +32,10 @@ pipeline{
                 script{
                     withCredentials([string(credentialsId: 'nexus_pw', variable: 'docker_password')]) {
                              sh '''
-                                docker build -t 3.80.82.16:8083/springapp:${VERSION} .
-                                docker login -u admin -p $docker_password 3.80.82.16:8083 
-                                docker push  3.80.82.16:8083/springapp:${VERSION}
-                                docker rmi 3.80.82.16:8083/springapp:${VERSION}
+                                docker build -t 3.81.134.82:8083/springapp:${VERSION} .
+                                docker login -u admin -p $docker_password 3.81.134.82:8083 
+                                docker push  3.81.134.82:8083/springapp:${VERSION}
+                                docker rmi 3.81.134.82:8083/springapp:${VERSION}
                             '''
                     }
                 }
@@ -61,7 +61,7 @@ pipeline{
                              sh '''
                                  helmversion=$( helm show chart myapp | grep version | cut -d: -f 2 | tr -d ' ')
                                  tar -czvf  myapp-${helmversion}.tgz myapp/
-                                 curl -u admin:$docker_password http://3.80.82.16:8081/repository/helm-hosted/ --upload-file myapp-${helmversion}.tgz -v
+                                 curl -u admin:$docker_password http://3.81.134.82:8081/repository/helm-hosted/ --upload-file myapp-${helmversion}.tgz -v
                             '''
                           }
                     }
@@ -83,9 +83,9 @@ pipeline{
         stage('Deploying application on k8s cluster') {
             steps {
                script{
-                   withCredentials([kubeconfigFile(credentialsId: 'kubernetes-config', variable: 'KUBECONFIG')]) {
+                   withCredentials([kubeconfigFile(credentialsId: 'k8s-config', variable: 'KUBECONFIG')]) {
                         dir('kubernetes/') {
-                          sh 'helm upgrade --install --set image.repository="44.201.14.29:8083/springapp" --set image.tag="${VERSION}" myjavaapp myapp/ ' 
+                          sh 'helm upgrade --install --set image.repository="3.81.134.82:8083/springapp" --set image.tag="${VERSION}" myjavaapp myapp/ ' 
                         }
                     }
                }
